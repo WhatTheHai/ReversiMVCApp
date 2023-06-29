@@ -29,7 +29,7 @@ namespace ReversiMvcApp
         {
             services.AddDbContext<ReversiDbContext>(options =>
             {
-                options.UseSqlite("Data Source=application.db;Cache=Shared;Mode=ReadWrite");
+                options.UseSqlite(Configuration.GetConnectionString("DefaultConnection"));
             });
             services.AddDbContext<ApplicationDbContext>(options => 
             {
