@@ -8,10 +8,12 @@ namespace ReversiMvcApp.Data
         public ReversiDbContext(DbContextOptions<ReversiDbContext> options) : base(options) { }
         
         public DbSet<Player> Players { get; set; }
+        public DbSet<Game> Game { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlite("Data Source=reversiDb.db");
         }
+
     }
 }

@@ -1,0 +1,53 @@
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+using ReversiMvcApp.Models;
+
+namespace ReversiMvcApp.Services
+{
+
+    public class ReversiAPIClient {
+        private readonly HttpClient httpClient;
+        private const string BaseUrl = "https://localhost:5001/api/game";
+
+        public ReversiAPIClient() {
+            httpClient = new HttpClient();
+            httpClient.BaseAddress = new Uri(BaseUrl);
+            httpClient.DefaultRequestHeaders.Accept.Clear();
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        }
+
+        public async Task<List<Game>> GetGamesAwaitingPlayers() {
+            //No string needed since the base address is set
+            var response = await httpClient.GetAsync(string.Empty);
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<List<Game>>(content);
+        }
+
+        public async Task<bool> CreateGame(Game game)
+        {
+            var json = JsonConvert.SerializeObject(game);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var post = await httpClient.PostAsync("", content);
+            post.EnsureSuccessStatusCode();
+
+            return true;
+        }
+
+        public async Task<Game> GetGame(string token) {
+            var response =  await httpClient.GetAsync(BaseUrl + "/" + token);
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<Game>(content);
+        }
+    }
+}

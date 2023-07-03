@@ -28,7 +28,6 @@ namespace ReversiMvcApp.Controllers
             //Only do this when the user is logged in.
             if (User.Identity.IsAuthenticated) {
                 ClaimsPrincipal currentUser = this.User;
-
                 var currentUserID = currentUser.FindFirst(ClaimTypes.NameIdentifier).Value;
                 var playerExists = _dbContext.Players.FirstOrDefault(p => p.Guid ==  currentUserID);
 
