@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -48,6 +49,42 @@ namespace ReversiMvcApp.Services
 
             var content = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<Game>(content);
+        }
+
+        public async Task<List<Game>> GetPlayerGames(string playerToken) {
+            var response =  await httpClient.GetAsync(BaseUrl + "/" + playerToken + "/anygames");
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<List<Game>>(content);
+        }
+
+        public async Task<bool> RemoveGame(string token, string playerToken) {
+            var removeGame = new ApiPlayerGameData() {
+                GameToken = token,
+                PlayerToken = playerToken
+            };
+            var json = JsonConvert.SerializeObject(removeGame);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            //DeleteASync doesn't have support to add json frombody, so I had to create a custom request
+            var request = new HttpRequestMessage() {
+                Method = HttpMethod.Delete,
+                RequestUri = new Uri(BaseUrl + "/" + playerToken),
+                Content = content
+            };
+            var response = await httpClient.SendAsync(request);
+            if (response.IsSuccessStatusCode)
+            {
+                return true;
+            }
+
+            throw response.StatusCode switch {
+                HttpStatusCode.Unauthorized => new UnauthorizedAccessException(
+                    "You are not the host of the game, you can't delete."),
+                HttpStatusCode.NotFound => new KeyNotFoundException("Game not found."),
+                _ => new Exception($"Something went wrong while removing this game: {response.StatusCode}")
+            };
         }
     }
 }

@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ReversiMvcApp.Data;
+using ReversiMvcApp.Helpers;
 using ReversiMvcApp.Models;
 using ReversiMvcApp.Services;
 
@@ -26,8 +25,10 @@ namespace ReversiMvcApp.Controllers
 
         // GET: Game
         [Authorize]
-        public async Task<IActionResult> Index()
-        {
+        public async Task<IActionResult> Index() {
+            if (await CheckPlayerGame()) {
+                return RedirectToAction("Index", "Home");
+            }
             var games = await reversiAPIClient.GetGamesAwaitingPlayers();
             return View(games);
         }
@@ -63,9 +64,10 @@ namespace ReversiMvcApp.Controllers
             if (ModelState.IsValid)
             {
                 try {
-                    ClaimsPrincipal currentUser = this.User;
-                    var currentUserID = currentUser.FindFirst(ClaimTypes.NameIdentifier).Value;
-                    var player = _dbContext.Players.FirstOrDefault(p => p.Guid == currentUserID);
+                    if (await CheckPlayerGame()) {
+                        return RedirectToAction("Index", "Home");
+                    }
+                    var player = Utilities.GetCurrentUserPlayer(User, _dbContext);
                     game.Player1Token = player.Guid;
                     var createGame = await reversiAPIClient.CreateGame(game);
                     if (!createGame) {
@@ -133,16 +135,15 @@ namespace ReversiMvcApp.Controllers
             return View(game);
         }
 
-        // GET: Game/Delete/5
-        public async Task<IActionResult> Delete(int? token)
+        // GET: Game/Delete/{token}
+        public async Task<IActionResult> Delete(string? token)
         {
             if (token == null)
             {
                 return NotFound();
             }
 
-            var game = await _dbContext.Game
-                .FirstOrDefaultAsync(m => m.ID == token);
+            var game = await reversiAPIClient.GetGame(token);
             if (game == null)
             {
                 return NotFound();
@@ -154,17 +155,42 @@ namespace ReversiMvcApp.Controllers
         // POST: Game/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int token)
+        public async Task<IActionResult> DeleteConfirmed(string token)
         {
-            var game = await _dbContext.Game.FindAsync(token);
-            _dbContext.Game.Remove(game);
-            await _dbContext.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            try {
+                var player = Utilities.GetCurrentUserPlayer(User, _dbContext);
+                var playerToken = player.Guid;
+
+                var result = await reversiAPIClient.RemoveGame(token, playerToken);
+
+                if (result) {
+                    return RedirectToAction(nameof(Index));
+                }
+
+                return BadRequest("Failed to delete the game, try again?");
+            }
+            catch (UnauthorizedAccessException ex) {
+                return Unauthorized(ex.Message);
+            }
+            catch (KeyNotFoundException ex) {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(statusCode:500, ex.Message);
+            }
         }
 
         private bool GameExists(int id)
         {
             return _dbContext.Game.Any(e => e.ID == id);
+        }
+
+        private async Task<bool> CheckPlayerGame()
+        {
+            var player = Utilities.GetCurrentUserPlayer(User, _dbContext);
+            var playerGame = await reversiAPIClient.GetPlayerGames(player.Guid);
+            return playerGame != null && playerGame.Any();
         }
     }
 }

@@ -8,7 +8,10 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.VisualBasic.CompilerServices;
 using ReversiMvcApp.Data;
+using ReversiMvcApp.Helpers;
+using ReversiMvcApp.Services;
 
 namespace ReversiMvcApp.Controllers
 {
@@ -16,21 +19,22 @@ namespace ReversiMvcApp.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly ReversiDbContext _dbContext;
+        private readonly ReversiAPIClient reversiAPIClient;
 
-        public HomeController(ILogger<HomeController> logger, ReversiDbContext dbContext)
+        public HomeController(ILogger<HomeController> logger, ReversiDbContext dbContext, ReversiAPIClient reversiAPIClient)
         {
             _logger = logger;
             _dbContext = dbContext;
+            this.reversiAPIClient = reversiAPIClient;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> IndexAsync()
         {
+            List<Game> userGames = new List<Game>();
             //Only do this when the user is logged in.
             if (User.Identity.IsAuthenticated) {
-                ClaimsPrincipal currentUser = this.User;
-                var currentUserID = currentUser.FindFirst(ClaimTypes.NameIdentifier).Value;
-                var playerExists = _dbContext.Players.FirstOrDefault(p => p.Guid ==  currentUserID);
-
+                var currentUserID = Utilities.GetCurrentUserID(User);
+                var playerExists = Utilities.GetCurrentUserPlayer(User, _dbContext);
                 if (playerExists == null) {
                     var createPlayer = new Player {
                         Guid = currentUserID,
@@ -43,8 +47,10 @@ namespace ReversiMvcApp.Controllers
                     _dbContext.Players.Add(createPlayer);
                     _dbContext.SaveChanges();
                 }
+
+                userGames = await reversiAPIClient.GetPlayerGames(currentUserID);
             }
-            return View();
+            return View(userGames);
         }
         
         public IActionResult Privacy()
