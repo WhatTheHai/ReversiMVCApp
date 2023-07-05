@@ -34,7 +34,12 @@ namespace ReversiMvcApp.Services
 
         public async Task<bool> CreateGame(Game game)
         {
-            var json = JsonConvert.SerializeObject(game);
+            //Only needs descriptions and player1Token
+            var gameDTO = new {
+                Description = game.Description,
+                Player1Token = game.Player1Token
+            };
+            var json = JsonConvert.SerializeObject(gameDTO);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             var post = await httpClient.PostAsync("", content);

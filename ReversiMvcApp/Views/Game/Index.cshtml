@@ -1,10 +1,12 @@
-﻿@model IEnumerable<ReversiMvcApp.Models.Game>
+﻿@using ReversiMvcApp.Helpers
+@model IEnumerable<ReversiMvcApp.Models.Game>
 
 @{
     ViewData["Title"] = "Index";
+    var currentUserID = Utilities.GetCurrentUserID(User);
 }
 
-<h1>Index</h1>
+<h1>IT'S REVERSI TIME</h1>
 
 <p>
     <a asp-action="Create">Create a new game</a>
@@ -22,12 +24,18 @@
 @foreach (var item in Model) {
         <tr>
             <td>
+                @if (item.Player1Token == currentUserID)
+                {
+                    <b>(HOST)</b>
+                }
                 @Html.DisplayFor(modelItem => item.Description)
             </td>
             <td>
-@*                <a asp-action="Edit" asp-route-id="@item.ID">Edit</a> |*@
-                <a asp-action="Details" asp-route-token="@item.Token">Details</a> |
-                <a asp-action="Delete" asp-route-token="@item.Token">Delete</a>
+                <a asp-action="Details" asp-route-token="@item.Token">Details</a>
+                @if (item.Player1Token == currentUserID) {
+                    @:| 
+                    <a asp-action="Delete" asp-route-token="@item.Token">Delete</a>
+                }
             </td>
         </tr>
 }

@@ -26,9 +26,6 @@ namespace ReversiMvcApp.Controllers
         // GET: Game
         [Authorize]
         public async Task<IActionResult> Index() {
-            if (await CheckPlayerGame()) {
-                return RedirectToAction("Index", "Home");
-            }
             var games = await reversiAPIClient.GetGamesAwaitingPlayers();
             return View(games);
         }
@@ -48,8 +45,11 @@ namespace ReversiMvcApp.Controllers
 
         // GET: Game/Create
         [Authorize]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
+            if (await CheckPlayerGame()) {
+                return RedirectToAction("Index", "Home");
+            }
             return View();
         }
 

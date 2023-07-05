@@ -1,8 +1,68 @@
-﻿@{
+﻿@using System.Security.Claims
+@using ReversiMvcApp.Helpers
+@using ReversiRestApi.Models.Enums
+@model IEnumerable<ReversiMvcApp.Models.Game>
+
+@{
     ViewData["Title"] = "Home Page";
+    var currentUserID = Utilities.GetCurrentUserID(User);
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+@if (Model != null)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">
+                    @Html.DisplayNameFor(model => model.Description)
+                </th>
+                <th scope="col">Status</th>
+                <th scope="col">Turn</th>
+                <th scope="col">@*Spacing*@</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @if (item != null) {
+                            @Html.DisplayFor(modelItem => item.Description)
+                        }
+                        else {
+                            @:N/A
+                        }
+                    </td>
+                    <td>
+                        @if (item != null) {
+                            @if (item.GameStatus == GameStatus.Awaiting) {
+                                @:Awaiting
+                            }
+                            else if (item.TurnToken == currentUserID) {
+                                @:Theirs
+                            }
+                            else {
+                                @:Yours
+                            }
+                        }
+                        else {
+                            @:N/A
+                        }
+                    </td>
+                    <td>
+                        @if (item != null) {
+                            <a asp-action="Details" asp-controller="Game" asp-route-token="@item.Token">Details</a>
+                        }
+                        else {
+                            @:N/A
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No games available, maybe try looking for your own over <a asp-action="Index" asp-controller="Game">here?</a></p>
+}
