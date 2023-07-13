@@ -7,9 +7,10 @@ namespace ReversiMvcApp.Helpers
 {
     public class Utilities
     {
-        public static string GetCurrentUserID(ClaimsPrincipal user)
+        public static string? GetCurrentUserID(ClaimsPrincipal user)
         {
-            return user.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var claim = user.FindFirst(ClaimTypes.NameIdentifier);
+            return claim?.Value;
         }
         public static Player GetCurrentUserPlayer(ClaimsPrincipal user, ReversiDbContext dbContext) {
             var currentUserID = GetCurrentUserID(user);

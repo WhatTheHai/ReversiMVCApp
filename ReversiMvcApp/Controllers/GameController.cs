@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ReversiMvcApp.Data;
@@ -41,6 +42,25 @@ namespace ReversiMvcApp.Controllers
             var game = await reversiAPIClient.GetGame(token);
 
             return View(game);
+        }
+
+        // GET: Game/Play/{token}
+        [HttpGet]
+        public async Task<IActionResult> Play(string token) 
+        {
+            if (token == null)
+            {
+                return NotFound();
+            }
+
+            var game = await reversiAPIClient.GetGame(token);
+
+            var gamePlayerToken = new GamePlayerToken() {
+                Token = game.Token,
+                PlayerToken = Utilities.GetCurrentUserID(User)
+            };
+
+            return View(gamePlayerToken);
         }
 
         // GET: Game/Create

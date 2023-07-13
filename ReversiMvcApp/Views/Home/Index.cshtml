@@ -5,7 +5,7 @@
 
 @{
     ViewData["Title"] = "Home Page";
-    var currentUserID = Utilities.GetCurrentUserID(User);
+    string? currentUserID = Utilities.GetCurrentUserID(User);
 }
 
 @if (Model != null)
@@ -16,8 +16,8 @@
                 <th scope="col">
                     @Html.DisplayNameFor(model => model.Description)
                 </th>
-                <th scope="col">Status</th>
                 <th scope="col">Turn</th>
+                <th scope="col"></th>
                 <th scope="col">@*Spacing*@</th>
             </tr>
         </thead>
@@ -55,7 +55,7 @@
                     </td>
                     <td>
                         @if (item != null) {
-                            <a asp-action="Details" asp-controller="Game" asp-route-token="@item.Token">Details</a>
+                            <a asp-action="Play" asp-controller="Game" asp-route-token="@item.Token">Play</a>
                         }
                         else {
                             @:N/A

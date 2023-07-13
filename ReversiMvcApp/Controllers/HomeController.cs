@@ -28,6 +28,7 @@ namespace ReversiMvcApp.Controllers
             this.reversiAPIClient = reversiAPIClient;
         }
 
+        [Authorize]
         public async Task<IActionResult> IndexAsync()
         {
             List<Game> userGames = new List<Game>();
