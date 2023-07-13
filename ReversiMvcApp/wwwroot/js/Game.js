@@ -33,17 +33,27 @@ const Game = (function (url) {
 
 Game.Reversi = (function () {
   let configMap = {}
-
+  
   const privateInit = function () {
     console.log('Hallo vanuit privateinit')
   }
+
+  function showFiche(x, y, color) {
+    const fiche = document.createElement('div');
+    fiche.className = `${color}-piece`
+    fiche.style.left = x + 'px';
+    fiche.style.top = y + 'px';
+    document.body.appendChild(fiche);
+  }
+
   return {
-    init: privateInit
+    init: privateInit,
+    showFiche: showFiche
   }
 })()
 
 Game.Data = (function () {
-  let stateMap = { enviroment: 'production' }
+  let stateMap = { enviroment: 'development' }
   let configMap = {
     mock: [
       {

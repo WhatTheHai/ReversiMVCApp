@@ -1,0 +1,245 @@
+#feedback-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 550px;
+  height: 250px;
+  border: 2px solid black;
+  border-radius: 10px;
+}
+
+@media only screen and (max-width: 600px) {
+  #feedback-container {
+    width: 80%;
+    height: 200px;
+    max-height: 100%;
+  }
+}
+#feedback-container footer {
+  padding: 10px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  position: absolute;
+  margin-top: auto;
+  bottom: 4%;
+  width: 100%;
+}
+
+@media only screen and (max-width: 600px) {
+  #feedback-container footer {
+    align-items: flex-start;
+  }
+}
+@media only screen and (max-width: 600px) {
+  #feedback-container footer {
+    flex-direction: column;
+  }
+}
+.feedback-container--success {
+  background-color: #59ce72;
+}
+
+.feedback-container--danger {
+  background-color: rgba(192, 38, 38, 0.3764705882);
+}
+
+.feedback-top-bar {
+  padding: 5px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.feedback-text {
+  display: flex;
+  padding: 5px;
+}
+
+@media only screen and (max-width: 600px) {
+  .feedback-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+.feedback-text--emoji {
+  font-size: 50px;
+  margin-right: 15px;
+  display: block;
+}
+
+@media only screen and (max-width: 600px) {
+  .feedback-text--emoji {
+    display: none;
+  }
+}
+.feedback-text--text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  color: #1b1b1b;
+  font-weight: bold;
+}
+
+@media only screen and (max-width: 600px) {
+  .feedback-text--text {
+    font-size: 8px;
+  }
+}
+/* INSPIRED BY THE BUTTONS OVER HERE (BUTTON 3)
+https://codepen.io/yuhomyan/details/OJMejWJ */
+.button--state-success {
+  background: rgb(28, 238, 0);
+  background: linear-gradient(0deg, rgb(20, 238, 0) 0%, rgb(2, 251, 114) 100%);
+  width: 80px;
+  height: 35px;
+  line-height: 20px;
+  padding: 0;
+  border: 1px transparent black;
+  border-radius: 10px;
+  margin-right: 10px;
+  animation: shake 8s infinite;
+}
+
+@media only screen and (max-width: 600px) {
+  .button--state-success {
+    margin-left: 10px;
+    margin-right: 0px;
+    margin-bottom: 5px;
+  }
+}
+@keyframes shake {
+  60% {
+    rotate: 0deg;
+  }
+  65% {
+    rotate: 8deg;
+  }
+  70% {
+    rotate: -8deg;
+  }
+  75% {
+    rotate: 8deg;
+  }
+  80% {
+    rotate: -8deg;
+  }
+  85% {
+    rotate: 8deg;
+  }
+  90% {
+    rotate: 0deg;
+  }
+}
+.button--state-danger {
+  background: rgb(238, 0, 0);
+  background: linear-gradient(0deg, rgba(117, 0, 0, 0.5) 0%, rgb(251, 2, 2) 100%);
+  width: 80px;
+  height: 35px;
+  line-height: 20px;
+  padding: 0;
+  border: 1px transparent black;
+  border-radius: 10px;
+  margin-left: 5px;
+}
+
+@media only screen and (max-width: 600px) {
+  .button--state-danger {
+    margin-left: 10px;
+  }
+}
+.button--state-close {
+  font-size: 25px;
+  background-color: transparent;
+  border: none;
+  color: black;
+  transition: color 0.4s;
+}
+
+.button--state-close:hover {
+  color: #cc0000;
+}
+
+.fade-in {
+  animation: fadeIn ease 3s;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+.fade-out {
+  animation: fadeOut ease 3s;
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+#board-container {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  background-color: #eaeaea;
+  border: 1px solid #ccc;
+  height: 512px;
+  width: 512px;
+}
+
+.grid-item {
+  background-color: #eee;
+  border: 1px solid #ccc;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fiche {
+  border-radius: 50%;
+  height: 51.2px;
+  width: 51.2px;
+  background-size: 16px 16px;
+  animation-name: ficheAnimation;
+  animation-duration: 0.5s;
+  animation-fill-mode: forwards;
+}
+
+@keyframes ficheAnimation {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(0.5) rotate(180deg);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+    opacity: 1;
+  }
+}
+.black-piece {
+  background-color: #001;
+  background-image: radial-gradient(white 15%, transparent 16%), radial-gradient(white 15%, transparent 16%);
+  background-position: 0 0, 30px 30px;
+}
+
+.white-piece {
+  background-color: lightgray;
+  background-image: linear-gradient(transparent 50%, rgba(255, 255, 255, 0.5) 50%);
+}
