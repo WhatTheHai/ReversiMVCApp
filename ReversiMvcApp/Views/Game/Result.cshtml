@@ -1,0 +1,23 @@
+﻿@using ReversiMvcApp.Helpers
+@model ReversiMvcApp.Services.ApiGameStatus
+
+@{
+    ViewData["Title"] = "Result";
+}
+
+<h1>Resultaat</h1>
+<hr/>
+@if (Model.Finished) {
+    <h2>Game has ended.</h2>
+    @if (Model.Winner == "Draw") {
+        <h3>Draw!</h3>
+    }
+    else if (Model.Winner == Utilities.GetCurrentUserID(User)) {
+        <h3>You win!</h3>
+    }
+    else {
+        <h3>You lose</h3>
+    }
+} else {
+    <h2>The game has not ended yet!</h2>
+}

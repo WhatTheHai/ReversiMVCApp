@@ -64,6 +64,14 @@ namespace ReversiMvcApp.Services
             return JsonConvert.DeserializeObject<List<Game>>(content);
         }
 
+        public async Task<ApiGameStatus> GetGameStatus(string token) {
+            var response =  await httpClient.GetAsync(BaseUrl + "/" + token + "/status");
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<ApiGameStatus>(content);
+        }
+
         public async Task<bool> RemoveGame(string token, string playerToken) {
             var removeGame = new ApiPlayerGameData() {
                 GameToken = token,

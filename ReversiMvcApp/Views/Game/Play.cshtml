@@ -1,8 +1,9 @@
 ﻿@model ReversiMvcApp.Models.GamePlayerToken
 
 @section headScripts {
+    <link rel="stylesheet" href="~/css/style.min.css"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.js"></script>
-    <script src="~/js/Game.js"></script>
+    <script src="~/js/app.js"></script>
 }
 
 @{
@@ -14,7 +15,7 @@
 <div>
     <h4>Game</h4>
     <hr />
-    <dl class="row">
+    @*<dl class="row">
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.Token)
         </dt>
@@ -27,14 +28,29 @@
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.PlayerToken)
         </dd>
-    </dl>
+    </dl>*@
 </div>
+<div id="feedback-container" class="fade-in feedback-container--success" style="display: none">
+    <header class="feedback-top-bar">
+        <button class="button button--state-close" onclick="feedbackWidget.hide()">X</button>
+    </header>
+    <article class="feedback-text">
+        <i class="feedback-text--emoji">✔️</i>
+        <p class="feedback-text--text">Mike wants to participate in your game. Agree?</p>
+    </article>
+    <footer>
+        <button class="button button--state-success">Accept</button>
+        <button class="button button--state-danger">Decline</button>
+    </footer>
+</div>
+<div id="board-container"></div>
 <div>
     <a asp-controller="Home" asp-action="Index">Back to List</a>
 </div>
 
 <script>
     $(document).ready(function () {
+        feedbackWidget = new FeedbackWidget("feedback-container");
         Game.init("https://localhost:5001/api", "@Model.PlayerToken", "@Model.Token");
     });
 </script>

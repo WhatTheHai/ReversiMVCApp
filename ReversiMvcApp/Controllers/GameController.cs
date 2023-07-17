@@ -104,6 +104,47 @@ namespace ReversiMvcApp.Controllers
             return View(game);
         }
 
+        // GET: Game/Result/{Token}
+        public async Task<IActionResult> Result(string token) {
+            if (token == null)
+            {
+                return NotFound();
+            }
+            // Call to determine the winner
+            var gameStatus = await reversiAPIClient.GetGameStatus(token);
+
+            if (gameStatus.Finished) {
+                var game = await reversiAPIClient.GetGame(token);
+                //var userToken = Utilities.GetCurrentUserID(User);
+
+                Player player1 = _dbContext.Players.FirstOrDefault(p => p.Guid == game.Player1Token);
+                if (player1 == null) {
+                    return NotFound();
+                }
+
+                Player player2 = _dbContext.Players.FirstOrDefault(p => p.Guid == game.Player2Token);
+                if (player2 == null) {
+                    return NotFound();
+                }
+
+                if (gameStatus.Winner == player1.Guid) {
+                    player1.AmountWon++;
+                    player2.AmountLost++;
+                } else if (gameStatus.Winner == player2.Guid) {
+                    player2.AmountWon++;
+                    player1.AmountLost++;
+                }
+                else {
+                    player1.AmountDrawn++;
+                    player2.AmountDrawn++;
+                }
+
+                await _dbContext.SaveChangesAsync();
+            }
+
+            return View(gameStatus);
+        }
+
         // GET: Game/Edit/5
         public async Task<IActionResult> Edit(int? token)
         {

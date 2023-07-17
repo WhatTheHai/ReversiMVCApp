@@ -81,12 +81,13 @@ var FeedbackWidget = /*#__PURE__*/function () {
 var Game = function (url) {
   //Configuratie en state waarden
   var stateMap = {
-    gameState: ''
+    gameState: 0
   };
   var configMap = {
     apiUrl: '',
     playerToken: '',
-    Token: ''
+    Token: '',
+    Color: ''
   };
 
   // Private function init
@@ -95,14 +96,32 @@ var Game = function (url) {
     configMap.playerToken = playerToken;
     configMap.Token = Token;
     console.log(configMap);
+    _getCurrentGameState();
     setInterval(_getCurrentGameState, 2000);
     //afterInit()
-    Game.Reversi.init();
+    //Game.Reversi.init()
   };
   // Waarde/object geretourneerd aan de outer scope
 
+  var initializeOnce = false;
+  var getColor = function getColor() {
+    if (configMap.playerToken == stateMap.gameState.player1Token) {
+      return 'white';
+    } else {
+      return 'black';
+    }
+  };
   var _getCurrentGameState = function _getCurrentGameState() {
-    stateMap.gameState = Game.Model.getGameState(configMap.Token);
+    Game.Model.getGameState(configMap.Token).then(function (data) {
+      stateMap.gameState = data;
+      Game.Reversi.init();
+      if (!initializeOnce) {
+        configMap.Color = getColor();
+        initializeOnce = true;
+      }
+    })["catch"](function (error) {
+      console.log(error.message);
+    });
   };
   return {
     init: privateInit,
@@ -113,54 +132,94 @@ var Game = function (url) {
 Game.Reversi = function () {
   var configMap = {};
   var privateInit = function privateInit() {
-    loadBoardCells();
+    var boardData = JSON.parse(Game.stateMap.gameState.board);
+    loadBoard(boardData);
   };
   var cellClickListener = function cellClickListener() {
     var x = parseInt(this.dataset.row);
     var y = parseInt(this.dataset.col);
     var random = Math.floor(Math.random() * 2);
-    var color = 'black';
-    if (random == 0) {
+    var color = Game.configMap.Color;
+    if (color == 'black') {
       showFiche(x, y, 'black');
     } else {
       showFiche(x, y, 'white');
     }
   };
   function showFiche(x, y, color) {
+    var cell = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
     var cellSelector = ".grid-item[data-row=\"".concat(x, "\"][data-col=\"").concat(y, "\"]");
-    var cell = document.querySelector(cellSelector);
-    if (cell) {
+    cell = cell || document.querySelector(cellSelector);
+
+    // Incase the board or cell is incorrect, helpful for debugging
+    if (!cell) {
+      console.error("Grid item at row ".concat(x, ", column ").concat(y, " not found."));
+      return;
+    }
+
+    // Get the current fiche
+    var existingFiche = cell.querySelector('.fiche');
+
+    // Remove if it's a different colour, main purpose is for when
+    // the data changes.
+    if (existingFiche) {
+      if (existingFiche.classList.contains("".concat(color, "-piece"))) {
+        return;
+      } else {
+        existingFiche.remove();
+      }
+    }
+
+    // If it's a nothing piece, it's clickable, if it's either a black or white piece
+    // add the piece and make it unclickable for the user.
+    if (color) {
       var fiche = document.createElement('div');
       fiche.className = "".concat(color, "-piece fiche");
       cell.appendChild(fiche);
       cell.removeEventListener('click', cellClickListener);
     } else {
-      console.error("Grid item at row ".concat(x, ", column ").concat(y, " not found."));
+      // If the color is blank, remove the fiche from the cell.
+      cell.innerHTML = '';
+      cell.addEventListener('click', cellClickListener);
     }
   }
-  function loadBoardCells() {
+  function loadBoard(boardData) {
     var boardContainer = document.getElementById('board-container');
-    var boardSize = 8;
-    for (var row = 1; row <= boardSize; row++) {
-      for (var col = 1; col <= boardSize; col++) {
-        var cell = document.createElement('div');
+    var boardSize = boardData.length;
+    for (var row = 0; row < boardSize; row++) {
+      for (var col = 0; col < boardSize; col++) {
+        var cellSelector = ".grid-item[data-row=\"".concat(row, "\"][data-col=\"").concat(col, "\"]");
+        var existingCell = document.querySelector(cellSelector);
+        var cell = existingCell || document.createElement('div');
         cell.className = 'grid-item';
         cell.dataset.row = row;
         cell.dataset.col = col;
-        cell.addEventListener('click', cellClickListener);
-        boardContainer.appendChild(cell);
+        if (!existingCell) {
+          boardContainer.appendChild(cell);
+        }
+        var cellValue = boardData[row][col];
+        var color = '';
+        if (cellValue === 1) {
+          color = 'white';
+        } else if (cellValue === 2) {
+          color = 'black';
+        }
+        showFiche(row, col, color, cell);
+        if (!existingCell && !color) {
+          cell.addEventListener('click', cellClickListener);
+        }
       }
     }
   }
   return {
     init: privateInit,
     showFiche: showFiche,
-    showBoard: loadBoardCells
+    showBoard: loadBoard
   };
 }();
 Game.Data = function () {
   var stateMap = {
-    enviroment: 'development'
+    enviroment: 'production'
   };
   var configMap = {
     mock: [{

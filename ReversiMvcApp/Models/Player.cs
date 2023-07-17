@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace ReversiMvcApp.Models
@@ -15,5 +16,7 @@ namespace ReversiMvcApp.Models
         public int AmountLost { get; set; }
 
         public int AmountDrawn { get; set; }
+
+        //public ICollection<GamePlayer> GamePlayers { get; set; } = new List<GamePlayer>();
     }
 }
