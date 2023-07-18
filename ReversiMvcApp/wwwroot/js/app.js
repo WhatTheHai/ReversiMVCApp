@@ -97,7 +97,7 @@ var Game = function (url) {
     configMap.Token = Token;
     console.log(configMap);
     _getCurrentGameState();
-    setInterval(_getCurrentGameState, 2000);
+    setInterval(_getCurrentGameState, 1500);
     //afterInit()
     //Game.Reversi.init()
   };
@@ -119,6 +119,12 @@ var Game = function (url) {
         configMap.Color = getColor();
         initializeOnce = true;
       }
+      if (data.finished == "True") {
+        var currentUrl = window.location;
+        var redirectUrl = "".concat(currentUrl.protocol, "//").concat(currentUrl.host, "/Game/Result/").concat(configMap.Token);
+        console.log(redirectUrl);
+        window.location.href = redirectUrl;
+      }
     })["catch"](function (error) {
       console.log(error.message);
     });
@@ -126,29 +132,46 @@ var Game = function (url) {
   return {
     init: privateInit,
     configMap: configMap,
-    stateMap: stateMap
+    stateMap: stateMap,
+    getCurrentGameState: _getCurrentGameState
   };
 }('/api/url');
 Game.Reversi = function () {
   var configMap = {};
   var privateInit = function privateInit() {
     var boardData = JSON.parse(Game.stateMap.gameState.board);
-    loadBoard(boardData);
+    _loadBoard(boardData);
   };
   var cellClickListener = function cellClickListener() {
-    var x = parseInt(this.dataset.row);
-    var y = parseInt(this.dataset.col);
-    var random = Math.floor(Math.random() * 2);
+    var x = parseInt(this.dataset.col);
+    var y = parseInt(this.dataset.row);
     var color = Game.configMap.Color;
     if (color == 'black') {
-      showFiche(x, y, 'black');
+      _showFiche(x, y, 'black');
     } else {
-      showFiche(x, y, 'white');
+      _showFiche(x, y, 'white');
+    }
+    if (color == 'black' || color == 'white') {
+      Game.Reversi.doMove(x, y).then(function () {
+        //Succes -> check game state
+        return Game.getCurrentGameState();
+      })["catch"](function (error) {
+        console.log(error.message);
+      });
     }
   };
-  function showFiche(x, y, color) {
+  var _doMove = function _doMove(x, y) {
+    var move = {
+      X: x,
+      Y: y,
+      GameToken: Game.configMap.Token,
+      PlayerToken: Game.configMap.playerToken
+    };
+    return Game.Data.put('/game/move', move);
+  };
+  function _showFiche(x, y, color) {
     var cell = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
-    var cellSelector = ".grid-item[data-row=\"".concat(x, "\"][data-col=\"").concat(y, "\"]");
+    var cellSelector = ".grid-item[data-row=\"".concat(y, "\"][data-col=\"").concat(x, "\"]");
     cell = cell || document.querySelector(cellSelector);
 
     // Incase the board or cell is incorrect, helpful for debugging
@@ -183,7 +206,7 @@ Game.Reversi = function () {
       cell.addEventListener('click', cellClickListener);
     }
   }
-  function loadBoard(boardData) {
+  function _loadBoard(boardData) {
     var boardContainer = document.getElementById('board-container');
     var boardSize = boardData.length;
     for (var row = 0; row < boardSize; row++) {
@@ -204,7 +227,7 @@ Game.Reversi = function () {
         } else if (cellValue === 2) {
           color = 'black';
         }
-        showFiche(row, col, color, cell);
+        _showFiche(row, col, color, cell);
         if (!existingCell && !color) {
           cell.addEventListener('click', cellClickListener);
         }
@@ -213,8 +236,9 @@ Game.Reversi = function () {
   }
   return {
     init: privateInit,
-    showFiche: showFiche,
-    showBoard: loadBoard
+    showFiche: _showFiche,
+    showBoard: _loadBoard,
+    doMove: _doMove
   };
 }();
 Game.Data = function () {
@@ -246,6 +270,36 @@ Game.Data = function () {
       });
     }
   };
+  var put = function put(url, data) {
+    if (stateMap.enviroment === 'development') {
+      return getMockData(url);
+    } else if (stateMap.enviroment === 'production') {
+      return fetch(Game.configMap.apiUrl + url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      }).then(function (response) {
+        if (!response.ok) {
+          if (response.status === 401) {
+            return response.text().then(function (message) {
+              feedbackWidget.show("\"".concat(message), 'danger');
+            });
+          } else {
+            throw new Error('Request failed with status: ' + response.status);
+          }
+        }
+        // Handle successful response
+        return response.json();
+      }).then(function (data) {
+        // Process the data from a successful response
+      })["catch"](function (error) {
+        console.log(error.message); // Display the error message
+      });
+    }
+  };
+
   var privateInit = function privateInit(environment) {
     if (environment != 'production' && environment != 'development') {
       throw new Error('Environment parameter is invalid');
@@ -254,6 +308,7 @@ Game.Data = function () {
   };
   return {
     get: get,
+    put: put,
     init: privateInit
   };
 }();

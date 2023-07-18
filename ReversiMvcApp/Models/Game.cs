@@ -23,5 +23,6 @@ namespace ReversiMvcApp.Models {
                 };
             }
         }
+        public bool UpdatedScores { get; set; }
     }
 }

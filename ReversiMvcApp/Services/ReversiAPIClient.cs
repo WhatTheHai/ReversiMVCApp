@@ -99,5 +99,23 @@ namespace ReversiMvcApp.Services
                 _ => new Exception($"Something went wrong while removing this game: {response.StatusCode}")
             };
         }
+
+        public async Task<bool> UpdatedScores(string token, string playerToken)
+        {
+            var json = JsonConvert.SerializeObject(playerToken);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await httpClient.PutAsync(BaseUrl + $"/result/{token}", content);
+            if (response.IsSuccessStatusCode)
+            {
+                return true;
+            }
+
+            throw response.StatusCode switch {
+                HttpStatusCode.Unauthorized => new UnauthorizedAccessException("Invalid player token"),
+                HttpStatusCode.NotFound => new KeyNotFoundException("Game not found."),
+                _ => new Exception($"Something went wrong while updating scores: {response.StatusCode}")
+            };
+        }
     }
 }

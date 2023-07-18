@@ -22,13 +22,13 @@ namespace ReversiMvcApp
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            /*services.AddCors(o => o.AddPolicy("Reversi", builder =>
+            services.AddCors(o => o.AddPolicy("Reversi", builder =>
             {
                 builder.WithOrigins("https://localhost:44365")
                     .SetIsOriginAllowed((host) => true)
                     .AllowAnyMethod()
                     .AllowAnyHeader();
-            }));*/
+            }));
 
             services.AddDbContext<ApplicationDbContext>(options => 
             {
@@ -65,7 +65,7 @@ namespace ReversiMvcApp
             //app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseRouting();
-            /*app.UseCors("Reversi");*/
+            app.UseCors("Reversi");
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>
