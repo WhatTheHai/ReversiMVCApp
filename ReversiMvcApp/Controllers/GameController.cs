@@ -127,7 +127,6 @@ namespace ReversiMvcApp.Controllers
                 if (player2 == null) {
                     return NotFound();
                 }
-                
                 if (game.UpdatedScores) {
                     await reversiAPIClient.RemoveGame(game.Token, userToken);
                     await _dbContext.SaveChangesAsync();

@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ReversiMvcApp.Data;
 using ReversiMvcApp.Services;
+using Recaptcha.Web.Configuration;
 
 namespace ReversiMvcApp
 {
@@ -44,8 +45,7 @@ namespace ReversiMvcApp
             services.AddControllersWithViews();
             services.AddScoped<ReversiAPIClient>();
             services.AddRazorPages();
-
-
+            RecaptchaConfigurationManager.SetConfiguration(Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -62,7 +62,7 @@ namespace ReversiMvcApp
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-            //app.UseHttpsRedirection();
+            app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseRouting();
             app.UseCors("Reversi");
