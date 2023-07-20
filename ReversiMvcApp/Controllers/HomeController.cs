@@ -54,7 +54,7 @@ namespace ReversiMvcApp.Controllers
             }
             return View(userGames);
         }
-        var recaptchaHelper = this.GetRecaptchaVerificationHelper();
+
         public IActionResult Privacy()
         {
             return View();
