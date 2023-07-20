@@ -79,17 +79,6 @@ namespace ReversiMvcApp.Areas.Identity.Pages.Account
 
             if (ModelState.IsValid)
             {
-                RecaptchaVerificationHelper recaptchaHelper = this.GetRecaptchaVerificationHelper();
-                if (String.IsNullOrEmpty(recaptchaHelper.Response))
-                {
-                    ModelState.AddModelError("", "Captcha answer cannot be empty.");
-                    return Page();
-                }
-                RecaptchaVerificationResult recaptchaResult = recaptchaHelper.VerifyRecaptchaResponse();
-                if (recaptchaResult != RecaptchaVerificationResult.Success)
-                {
-                    ModelState.AddModelError("", "Incorrect captcha answer.");
-                }
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
                 var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
