@@ -1,7 +1,6 @@
 ﻿@page
 @model LoginModel
-@using Recaptcha.Web.Mvc;
-
+@using AspNetCore.ReCaptcha
 @{
     ViewData["Title"] = "Log in";
 }
@@ -32,7 +31,7 @@
                         </label>
                     </div>
                 </div>
-                @Html.RecaptchaWidget(renderApiScript: false)
+                @Html.ReCaptcha()
                 <div class="form-group">
                     <button type="submit" class="btn btn-primary">Log in</button>
                 </div>

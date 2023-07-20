@@ -11,12 +11,12 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
-using Recaptcha.Web;
-using Recaptcha.Web.Mvc;
+using AspNetCore.ReCaptcha;
 
 namespace ReversiMvcApp.Areas.Identity.Pages.Account
 {
     [AllowAnonymous]
+    [ValidateReCaptcha]
     public class LoginModel : PageModel
     {
         private readonly UserManager<IdentityUser> _userManager;
