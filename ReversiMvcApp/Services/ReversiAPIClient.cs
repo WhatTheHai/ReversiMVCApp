@@ -117,5 +117,26 @@ namespace ReversiMvcApp.Services
                 _ => new Exception($"Something went wrong while updating scores: {response.StatusCode}")
             };
         }
+
+        public async Task<bool> JoinGame(string token, string playerToken) {
+            var joinGame = new ApiPlayerGameData() {
+                GameToken = token,
+                PlayerToken = playerToken
+            };
+            var json = JsonConvert.SerializeObject(joinGame);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await httpClient.PutAsync(BaseUrl + $"/joingame/", content);
+            if (response.IsSuccessStatusCode)
+            {
+                return true;
+            }
+
+            throw response.StatusCode switch {
+                HttpStatusCode.Unauthorized => new UnauthorizedAccessException("Invalid player token"),
+                HttpStatusCode.NotFound => new KeyNotFoundException("Game not found."),
+                _ => new Exception($"Something went wrong while updating scores: {response.StatusCode}")
+            };
+        }
     }
 }

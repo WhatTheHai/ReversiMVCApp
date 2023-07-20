@@ -145,6 +145,10 @@ namespace ReversiMvcApp.Controllers
                     await reversiAPIClient.UpdatedScores(game.Token, userToken);
                 }
 
+                if (game.UpdatedScores) {
+                    await reversiAPIClient.RemoveGame(game.Token, userToken);
+                }
+
                 await _dbContext.SaveChangesAsync();
             }
 
@@ -235,6 +239,39 @@ namespace ReversiMvcApp.Controllers
                 }
 
                 return BadRequest("Failed to delete the game, try again?");
+            }
+            catch (UnauthorizedAccessException ex) {
+                return Unauthorized(ex.Message);
+            }
+            catch (KeyNotFoundException ex) {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(statusCode:500, ex.Message);
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Join(string token)
+        {
+            try {
+                if (token == null)
+                {
+                    return NotFound();
+                }
+
+                var game = await reversiAPIClient.GetGame(token);
+
+                var playerToken = Utilities.GetCurrentUserID(User);
+
+                var result = await reversiAPIClient.JoinGame(token, playerToken);
+
+                if (result) {
+                    return RedirectToAction("Play", "Game",new {token = game.Token});
+                }
+
+                return BadRequest("Failed to join game, try again?");
             }
             catch (UnauthorizedAccessException ex) {
                 return Unauthorized(ex.Message);
