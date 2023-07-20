@@ -127,8 +127,14 @@ namespace ReversiMvcApp.Controllers
                 if (player2 == null) {
                     return NotFound();
                 }
+                
+                if (game.UpdatedScores) {
+                    await reversiAPIClient.RemoveGame(game.Token, userToken);
+                    await _dbContext.SaveChangesAsync();
+                    return View(gameStatus);
+                }
 
-                if ((game.Player1Token == userToken || game.Player2Token == userToken ) && game.UpdatedScores == false) {
+                if ((game.Player1Token == userToken || game.Player2Token == userToken) && game.UpdatedScores == false) {
                     await reversiAPIClient.UpdatedScores(token, userToken);
                     if (gameStatus.Winner == player1.Guid) {
                         player1.AmountWon++;
@@ -142,11 +148,8 @@ namespace ReversiMvcApp.Controllers
                         player1.AmountDrawn++;
                         player2.AmountDrawn++;
                     }
-                    await reversiAPIClient.UpdatedScores(game.Token, userToken);
-                }
 
-                if (game.UpdatedScores) {
-                    await reversiAPIClient.RemoveGame(game.Token, userToken);
+                    await reversiAPIClient.UpdatedScores(game.Token, userToken);
                 }
 
                 await _dbContext.SaveChangesAsync();
