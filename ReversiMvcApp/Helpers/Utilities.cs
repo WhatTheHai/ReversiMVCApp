@@ -1,5 +1,7 @@
 ﻿using System.Linq;
 using System.Security.Claims;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using ReversiMvcApp.Data;
 using ReversiMvcApp.Models;
 
@@ -18,5 +20,12 @@ namespace ReversiMvcApp.Helpers
             return player;
         }
 
+        public static async Task<bool> CreateRoleIfNotExistsAsync(RoleManager<IdentityRole> roleManager, string roleName) {
+            if (!await roleManager.RoleExistsAsync(roleName)) {
+                var result = await roleManager.CreateAsync(new IdentityRole(roleName));
+                return result.Succeeded;
+            }
+            return false;
+        }
     }
 }

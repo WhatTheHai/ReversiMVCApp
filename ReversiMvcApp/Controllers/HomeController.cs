@@ -9,6 +9,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.VisualBasic.CompilerServices;
 using ReversiMvcApp.Data;
 using ReversiMvcApp.Helpers;
@@ -21,12 +22,16 @@ namespace ReversiMvcApp.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly ReversiDbContext _dbContext;
         private readonly ReversiAPIClient reversiAPIClient;
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        public HomeController(ILogger<HomeController> logger, ReversiDbContext dbContext, ReversiAPIClient reversiAPIClient)
+        public HomeController(ILogger<HomeController> logger, ReversiDbContext dbContext, ReversiAPIClient reversiAPIClient, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
         {
             _logger = logger;
             _dbContext = dbContext;
             this.reversiAPIClient = reversiAPIClient;
+            _userManager = userManager;
+            _roleManager = roleManager;
         }
 
         [Authorize]
@@ -40,7 +45,7 @@ namespace ReversiMvcApp.Controllers
                 if (playerExists == null) {
                     var createPlayer = new Player {
                         Guid = currentUserID,
-                        Name = "New Player",
+                        Name = playerExists.Name,
                         AmountWon = 0,
                         AmountDrawn = 0,
                         AmountLost = 0
@@ -51,6 +56,15 @@ namespace ReversiMvcApp.Controllers
                 }
 
                 userGames = await reversiAPIClient.GetPlayerGames(currentUserID);
+
+                await Utilities.CreateRoleIfNotExistsAsync(_roleManager, "Player");
+                await Utilities.CreateRoleIfNotExistsAsync(_roleManager, "Moderator");
+                await Utilities.CreateRoleIfNotExistsAsync(_roleManager, "Administrator");
+                if (playerExists.Name == "haiboy@hotmail.nl") {
+                    await _userManager.AddToRoleAsync(await _userManager.GetUserAsync(User), "Administrator");
+                }
+
+                await _userManager.AddToRoleAsync(await _userManager.GetUserAsync(User), "Player");
             }
             return View(userGames);
         }

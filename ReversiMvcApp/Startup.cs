@@ -41,7 +41,9 @@ namespace ReversiMvcApp
                 options.UseSqlite(Configuration.GetConnectionString("DefaultConnection"));
             });
 
-            services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+            // Manually set this to false because we're not /actually/ using confirmation
+            services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
+                .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             services.AddControllersWithViews();
             services.AddScoped<ReversiAPIClient>();
