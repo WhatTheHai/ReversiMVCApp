@@ -13,11 +13,12 @@ using ReversiMvcApp.Services;
 
 namespace ReversiMvcApp.Controllers
 {
+    [Authorize]
     public class GameController : Controller
     {
         private readonly ReversiDbContext _dbContext;
         private readonly ReversiAPIClient reversiAPIClient;
-
+        
         public GameController(ReversiDbContext dbContext, ReversiAPIClient reversiAPIClient)
         {
             _dbContext = dbContext;
@@ -25,14 +26,12 @@ namespace ReversiMvcApp.Controllers
         }
 
         // GET: Game
-        [Authorize]
         public async Task<IActionResult> Index() {
             var games = await reversiAPIClient.GetGamesAwaitingPlayers();
             return View(games);
         }
 
         // GET: Game/Play/{token}
-        [HttpGet]
         public async Task<IActionResult> Play(string token) 
         {
             if (token == null)
@@ -51,7 +50,6 @@ namespace ReversiMvcApp.Controllers
         }
 
         // GET: Game/Create
-        [Authorize]
         public async Task<IActionResult> Create()
         {
             if (await CheckPlayerGame()) {
@@ -92,7 +90,6 @@ namespace ReversiMvcApp.Controllers
         }
 
         // GET: Game/Result/{Token}
-        [Authorize]
         public async Task<IActionResult> Result(string token) {
             if (token == null)
             {

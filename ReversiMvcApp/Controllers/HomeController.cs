@@ -33,7 +33,7 @@ namespace ReversiMvcApp.Controllers
             _userManager = userManager;
             _roleManager = roleManager;
         }
-
+        
         [Authorize]
         public async Task<IActionResult> IndexAsync()
         {

@@ -90,6 +90,7 @@ namespace ReversiMvcApp.Controllers
         // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Moderator, Administrator")]
         public async Task<IActionResult> Edit(string token, [Bind("Guid,Name,AmountWon,AmountLost,AmountDrawn")] Player player)
         {
             if (token != player.Guid)
@@ -142,6 +143,7 @@ namespace ReversiMvcApp.Controllers
         // POST: Player/Delete/{token}
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Moderator, Administrator")]
         public async Task<IActionResult> DeleteConfirmed(string token)
         {
             var player = await _context.Players.FindAsync(token);
