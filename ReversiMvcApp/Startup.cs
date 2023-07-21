@@ -71,11 +71,6 @@ namespace ReversiMvcApp
             app.Use(async (context, next) =>
             {
                 context.Response.Headers.Add("X-Frame-Options", "SAMEORIGIN");
-                context.Response.Headers.Add("Content-Security-Policy", 
-                    "default-src 'self'; " +
-                    "connect-src 'self' https://localhost:44394 wss://localhost:44394 https://localhost:5001; " +
-                    "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; " +
-                    "style-src 'self' 'unsafe-inline';");
                 await next();
             });
 
