@@ -31,19 +31,6 @@ namespace ReversiMvcApp.Controllers
             return View(games);
         }
 
-        // GET: Game/Details/{token}
-        public async Task<IActionResult> Details(string token)
-        {
-            if (token == null)
-            {
-                return NotFound();
-            }
-
-            var game = await reversiAPIClient.GetGame(token);
-
-            return View(game);
-        }
-
         // GET: Game/Play/{token}
         [HttpGet]
         public async Task<IActionResult> Play(string token) 
@@ -157,57 +144,6 @@ namespace ReversiMvcApp.Controllers
             return View(gameStatus);
         }
 
-        // GET: Game/Edit/5
-        public async Task<IActionResult> Edit(int? token)
-        {
-            if (token == null)
-            {
-                return NotFound();
-            }
-
-            var game = await _dbContext.Game.FindAsync(token);
-            if (game == null)
-            {
-                return NotFound();
-            }
-            return View(game);
-        }
-
-        // POST: Game/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
-        // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int token, [Bind("ID,Description,Token,Player1Token,Player2Token")] Game game)
-        {
-            if (token != game.ID)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _dbContext.Update(game);
-                    await _dbContext.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!GameExists(game.ID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(game);
-        }
-
         // GET: Game/Delete/{token}
         public async Task<IActionResult> Delete(string? token)
         {
@@ -296,7 +232,7 @@ namespace ReversiMvcApp.Controllers
         {
             var player = Utilities.GetCurrentUserPlayer(User, _dbContext);
             var playerGame = await reversiAPIClient.GetPlayerGames(player.Guid);
-            return playerGame != null && playerGame.Any();
+            return playerGame != null && playerGame.Any(g => g.Player1Token == player.Guid);
         }
     }
 }

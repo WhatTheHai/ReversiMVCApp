@@ -31,13 +31,10 @@
                 @Html.DisplayFor(modelItem => item.Description)
             </td>
             <td>
-                <a asp-action="Details" asp-route-token="@item.Token">Details</a>
                 @if (item.Player1Token == currentUserID) {
-                    @:| 
                     <a asp-action="Delete" asp-route-token="@item.Token">Delete</a>
                 } else if (item.Player1Token == null || item.Player2Token == null) {
-                        @:|
-                        <a asp-action="Join" asp-route-token="@item.Token">Join</a>
+                    <a asp-action="Join" asp-route-token="@item.Token">Join</a>
                 }
             </td>
         </tr>
