@@ -41,11 +41,12 @@ namespace ReversiMvcApp.Controllers
             //Only do this when the user is logged in.
             if (User.Identity.IsAuthenticated) {
                 var currentUserID = Utilities.GetCurrentUserID(User);
+                var user = _userManager.GetUserAsync(User);
                 var playerExists = Utilities.GetCurrentUserPlayer(User, _dbContext);
                 if (playerExists == null) {
                     var createPlayer = new Player {
                         Guid = currentUserID,
-                        Name = playerExists.Name,
+                        Name = user.Result.UserName,
                         AmountWon = 0,
                         AmountDrawn = 0,
                         AmountLost = 0
@@ -60,11 +61,11 @@ namespace ReversiMvcApp.Controllers
                 await Utilities.CreateRoleIfNotExistsAsync(_roleManager, "Player");
                 await Utilities.CreateRoleIfNotExistsAsync(_roleManager, "Moderator");
                 await Utilities.CreateRoleIfNotExistsAsync(_roleManager, "Administrator");
-                if (playerExists.Name == "haiboy@hotmail.nl") {
-                    await _userManager.AddToRoleAsync(await _userManager.GetUserAsync(User), "Administrator");
+                if (playerExists is { Name: "haiboy@hotmail.nl" }) {
+                    await _userManager.AddToRoleAsync(await user, "Administrator");
                 }
 
-                await _userManager.AddToRoleAsync(await _userManager.GetUserAsync(User), "Player");
+                await _userManager.AddToRoleAsync(await user, "Player");
             }
             return View(userGames);
         }
