@@ -1,0 +1,60 @@
+﻿@model IEnumerable<ReversiMvcApp.Models.PlayerRole>
+
+@{
+    ViewData["Title"] = "Admin overview";
+}
+
+<h1>Admin</h1>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Guid)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Name)
+        </th>
+        <th>
+            Moderator
+        </th>
+        <th>
+            Banned
+        </th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model) {
+        <tr>
+            <td>
+                    @Html.DisplayFor(modelItem => item.Guid)
+            </td>
+            <td>
+                    @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                    @Html.DisplayFor(modelItem => item.isModerator)
+                    @if (item.isModerator)
+                    {
+                        <a asp-action="EditModeratorRole" asp-route-token="@item.Guid">Unmod</a>
+                    }
+                    else
+                    {
+                        <a asp-action="EditModeratorRole" asp-route-token="@item.Guid">Mod</a>
+                    }
+            </td>
+            <td>
+                    @Html.DisplayFor(modelItem => item.isPlayer)
+                    @if (item.isPlayer) {
+                        <a asp-action="EditPlayerRole" asp-route-token="@item.Guid">Unban</a>
+                    }
+                    else
+                    {
+                        <a asp-action="EditPlayerRole" asp-route-token="@item.Guid">Ban</a>
+                    }
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

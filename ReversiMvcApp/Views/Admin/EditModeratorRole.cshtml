@@ -1,0 +1,23 @@
+﻿@model ReversiMvcApp.Models.PlayerRole
+@{
+    ViewData["Title"] = "Moderator Management";
+}
+
+<form asp-action="ConfirmChangeRoleASync" method="post">
+    <div class="jumbotron text-center">
+        @if (Model.isModerator)
+        {
+            <h1>Are you sure you want to take moderator privileges to <b>@Model.Name</b>?</h1>
+        }
+        else
+        {
+            <h1>Are you sure you want to give moderator privileges from <b>@Model.Name</b>?</h1>
+        }
+    </div>
+    <input type="hidden" name="typeRole" value="Moderator"/>
+    <input type="hidden" asp-for="@Model.Guid" />
+    <input type="hidden" asp-for="@Model.Name" />
+    <input type="hidden" asp-for="@Model.isPlayer" />
+    <input type="hidden" asp-for="@Model.isModerator" />
+    <input type="submit" value="Confirm" class="btn btn-primary btn-lg btn-block" />
+</form>
