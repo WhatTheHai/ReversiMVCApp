@@ -56,6 +56,7 @@ namespace ReversiMvcApp.Controllers
         // more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Moderator, Administrator")]
         public async Task<IActionResult> Create([Bind("Guid,Name,AmountWon,AmountLost,AmountDrawn")] Player player)
         {
             if (ModelState.IsValid) {
