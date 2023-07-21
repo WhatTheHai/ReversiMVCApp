@@ -45,6 +45,7 @@ namespace ReversiMvcApp.Controllers
         }
 
         // GET: Player/Create
+        [Authorize(Roles = "Moderator, Administrator")]
         public IActionResult Create()
         {
             return View();
