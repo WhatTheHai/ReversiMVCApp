@@ -16,6 +16,11 @@
       "destination": "wwwroot/lib/jquery/dist/"
     },
     {
+      "library": "jquery-validate@1.19.5",
+      "files": [ "jquery.validate.js", "jquery.validate.min.js" ],
+      "destination": "wwwroot/lib/jquery-validation/dist"
+    },
+    {
       "provider": "unpkg",
       "library": "bootstrap@5.3.0",
       "files": [
