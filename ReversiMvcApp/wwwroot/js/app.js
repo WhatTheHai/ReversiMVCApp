@@ -1,11 +1,82 @@
 "use strict";
 
+function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it["return"] != null) it["return"](); } finally { if (didErr) throw err; } } }; }
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
 function _typeof(obj) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (obj) { return typeof obj; } : function (obj) { return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }, _typeof(obj); }
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, _toPropertyKey(descriptor.key), descriptor); } }
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
 function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return _typeof(key) === "symbol" ? key : String(key); }
 function _toPrimitive(input, hint) { if (_typeof(input) !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (_typeof(res) !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
+var Game = function () {
+  //Configuratie en state waarden
+  var stateMap = {
+    gameState: 0
+  };
+  var configMap = {
+    apiUrl: '',
+    playerToken: '',
+    Token: '',
+    Color: ''
+  };
+  var pollRate;
+
+  // Private function init
+  var _init = function _init(url, playerToken, Token) {
+    configMap.apiUrl = url;
+    configMap.playerToken = playerToken;
+    configMap.Token = Token;
+    configMap.Color = getColor();
+    Game.Data.init(configMap.apiUrl, "production");
+    Game.Model.init();
+    Game.Template.init();
+    Game.API.init();
+    pollRate = setInterval(_getCurrentGameState, 2500);
+  };
+  var initializeOnce = false;
+  var getColor = function getColor() {
+    if (configMap.playerToken == stateMap.gameState.player1Token) {
+      return 'white';
+    } else {
+      return 'black';
+    }
+  };
+  var _getCurrentGameState = function _getCurrentGameState() {
+    Game.API.getGameState(configMap.Token).then(function (data) {
+      if (!initializeOnce) {
+        stateMap.gameState = data;
+        Game.Reversi.init(stateMap.gameState.board);
+        Game.Stats.init();
+        initializeOnce = true;
+      } else {
+        if (stateMap.gameState.board != data.board) {
+          console.log("not same");
+          Game.Stats.addOccupiedChartData(data.board);
+        }
+        stateMap.gameState = data;
+        Game.Reversi.updateBoard(JSON.parse(stateMap.gameState.board));
+      }
+      if (data.finished == "True") {
+        clearInterval(pollRate);
+        var currentUrl = window.location;
+        var redirectUrl = "".concat(currentUrl.protocol, "//").concat(currentUrl.host, "/Game/Result/").concat(configMap.Token);
+        var randomDelay = Math.floor(Math.random() * 2000) + 3000;
+        setTimeout(function () {
+          window.location.href = redirectUrl;
+        }, randomDelay);
+      }
+    })["catch"](function (error) {
+      console.log(error.message);
+    });
+  };
+  return {
+    init: _init,
+    configMap: configMap,
+    stateMap: stateMap,
+    getCurrentGameState: _getCurrentGameState
+  };
+}();
 var FeedbackWidget = /*#__PURE__*/function () {
   function FeedbackWidget(elementId) {
     _classCallCheck(this, FeedbackWidget);
@@ -20,21 +91,38 @@ var FeedbackWidget = /*#__PURE__*/function () {
   }, {
     key: "show",
     value: function show(message, type) {
+      var _this = this;
       var elem = document.getElementById(this._elementId);
+      var typeEmoji = "✔️";
+      var fact = "Placeholder";
       elem.style.display = "block";
-      var textElement = elem.querySelector('.feedback-text--text');
-      textElement.textContent = message;
-      if (type == "success") {
-        $(elem).attr("class", "feedback-container--success");
-        $(".feedback-text--emoji").text("✔️");
-      } else {
-        $(elem).attr("class", "feedback-container--danger");
-        $(".feedback-text--emoji").text("❌");
+      // let textElement = elem.querySelector('.feedback-text--text');
+      // textElement.textContent = message;
+      // if (type == "success") {
+      //   $(elem).attr("class","feedback-container--success");
+      //   $(".feedback-text--emoji").text("✔️");
+      // } else {
+      //   $(elem).attr("class", "feedback-container--danger");
+      //   $(".feedback-text--emoji").text("❌");
+      // }
+      // $(elem).addClass("fade-in");
+
+      if (type != "success") {
+        type = "danger";
+        typeEmoji = "❌";
       }
-      $(elem).addClass("fade-in");
-      this.log({
-        message: message,
-        type: type
+      Game.API.getDogFact().then(function (data) {
+        var fact = data.data[0].attributes.body;
+        elem.outerHTML = Game.Template.parseTemplate("feedbackWidget.body", {
+          status: type,
+          emoji: typeEmoji,
+          text: message,
+          quote: fact
+        });
+        _this.log({
+          message: message,
+          type: type
+        });
       });
     }
   }, {
@@ -46,7 +134,7 @@ var FeedbackWidget = /*#__PURE__*/function () {
         elem.style.display = "none";
         elem.classList.remove("fade-out");
         elem.classList.remove("fade-in");
-      }, 3000);
+      }, 749);
     }
   }, {
     key: "log",
@@ -78,167 +166,35 @@ var FeedbackWidget = /*#__PURE__*/function () {
   }]);
   return FeedbackWidget;
 }();
-var Game = function (url) {
-  //Configuratie en state waarden
-  var stateMap = {
-    gameState: 0
+Game.API = function () {
+  var _init = function _init() {};
+  var apiLink = function apiLink() {
+    return Game.configMap.apiUrl;
   };
-  var configMap = {
-    apiUrl: '',
-    playerToken: '',
-    Token: '',
-    Color: ''
+  var getGameState = function getGameState(token) {
+    var url = apiLink() + "/Game/".concat(token);
+    return Game.Data.get(url).then(function (data) {
+      return data;
+    })["catch"](function (error) {
+      console.log(error.message);
+    });
   };
-
-  // Private function init
-  var privateInit = function privateInit(url, playerToken, Token) {
-    configMap.apiUrl = url;
-    configMap.playerToken = playerToken;
-    configMap.Token = Token;
-    console.log(configMap);
-    _getCurrentGameState();
-    setInterval(_getCurrentGameState, 1500);
-    //afterInit()
-    //Game.Reversi.init()
+  var makeMove = function makeMove(move) {
+    return Game.Data.put(apiLink() + '/Game/move', move);
   };
-  // Waarde/object geretourneerd aan de outer scope
-
-  var initializeOnce = false;
-  var getColor = function getColor() {
-    if (configMap.playerToken == stateMap.gameState.player1Token) {
-      return 'white';
-    } else {
-      return 'black';
-    }
-  };
-  var _getCurrentGameState = function _getCurrentGameState() {
-    Game.Model.getGameState(configMap.Token).then(function (data) {
-      stateMap.gameState = data;
-      Game.Reversi.init();
-      if (!initializeOnce) {
-        configMap.Color = getColor();
-        initializeOnce = true;
-      }
-      if (data.finished == "True") {
-        var currentUrl = window.location;
-        var redirectUrl = "".concat(currentUrl.protocol, "//").concat(currentUrl.host, "/Game/Result/").concat(configMap.Token);
-        console.log(redirectUrl);
-        window.location.href = redirectUrl;
-      }
+  var getDogFact = function getDogFact() {
+    var url = 'https://dogapi.dog/api/v2/facts';
+    return Game.Data.get(url).then(function (data) {
+      return data;
     })["catch"](function (error) {
       console.log(error.message);
     });
   };
   return {
-    init: privateInit,
-    configMap: configMap,
-    stateMap: stateMap,
-    getCurrentGameState: _getCurrentGameState
-  };
-}('/api/url');
-Game.Reversi = function () {
-  var configMap = {};
-  var privateInit = function privateInit() {
-    var boardData = JSON.parse(Game.stateMap.gameState.board);
-    _loadBoard(boardData);
-  };
-  var cellClickListener = function cellClickListener() {
-    var x = parseInt(this.dataset.col);
-    var y = parseInt(this.dataset.row);
-    var color = Game.configMap.Color;
-    if (color == 'black') {
-      _showFiche(x, y, 'black');
-    } else {
-      _showFiche(x, y, 'white');
-    }
-    if (color == 'black' || color == 'white') {
-      Game.Reversi.doMove(x, y).then(function () {
-        //Succes -> check game state
-        return Game.getCurrentGameState();
-      })["catch"](function (error) {
-        console.log(error.message);
-      });
-    }
-  };
-  var _doMove = function _doMove(x, y) {
-    var move = {
-      X: x,
-      Y: y,
-      GameToken: Game.configMap.Token,
-      PlayerToken: Game.configMap.playerToken
-    };
-    return Game.Data.put('/game/move', move);
-  };
-  function _showFiche(x, y, color) {
-    var cell = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
-    var cellSelector = ".grid-item[data-row=\"".concat(y, "\"][data-col=\"").concat(x, "\"]");
-    cell = cell || document.querySelector(cellSelector);
-
-    // Incase the board or cell is incorrect, helpful for debugging
-    if (!cell) {
-      console.error("Grid item at row ".concat(x, ", column ").concat(y, " not found."));
-      return;
-    }
-
-    // Get the current fiche
-    var existingFiche = cell.querySelector('.fiche');
-
-    // Remove if it's a different colour, main purpose is for when
-    // the data changes.
-    if (existingFiche) {
-      if (existingFiche.classList.contains("".concat(color, "-piece"))) {
-        return;
-      } else {
-        existingFiche.remove();
-      }
-    }
-
-    // If it's a nothing piece, it's clickable, if it's either a black or white piece
-    // add the piece and make it unclickable for the user.
-    if (color) {
-      var fiche = document.createElement('div');
-      fiche.className = "".concat(color, "-piece fiche");
-      cell.appendChild(fiche);
-      cell.removeEventListener('click', cellClickListener);
-    } else {
-      // If the color is blank, remove the fiche from the cell.
-      cell.innerHTML = '';
-      cell.addEventListener('click', cellClickListener);
-    }
-  }
-  function _loadBoard(boardData) {
-    var boardContainer = document.getElementById('board-container');
-    var boardSize = boardData.length;
-    for (var row = 0; row < boardSize; row++) {
-      for (var col = 0; col < boardSize; col++) {
-        var cellSelector = ".grid-item[data-row=\"".concat(row, "\"][data-col=\"").concat(col, "\"]");
-        var existingCell = document.querySelector(cellSelector);
-        var cell = existingCell || document.createElement('div');
-        cell.className = 'grid-item';
-        cell.dataset.row = row;
-        cell.dataset.col = col;
-        if (!existingCell) {
-          boardContainer.appendChild(cell);
-        }
-        var cellValue = boardData[row][col];
-        var color = '';
-        if (cellValue === 1) {
-          color = 'white';
-        } else if (cellValue === 2) {
-          color = 'black';
-        }
-        _showFiche(row, col, color, cell);
-        if (!existingCell && !color) {
-          cell.addEventListener('click', cellClickListener);
-        }
-      }
-    }
-  }
-  return {
-    init: privateInit,
-    showFiche: _showFiche,
-    showBoard: _loadBoard,
-    doMove: _doMove
+    init: _init,
+    getGameState: getGameState,
+    makeMove: makeMove,
+    getDogFact: getDogFact
   };
 }();
 Game.Data = function () {
@@ -246,6 +202,7 @@ Game.Data = function () {
     enviroment: 'production'
   };
   var configMap = {
+    url: "",
     mock: [{
       url: '/api/Game/Turn',
       data: 0
@@ -263,7 +220,7 @@ Game.Data = function () {
     if (stateMap.enviroment == 'development') {
       return getMockData(url);
     } else if (stateMap.enviroment == 'production') {
-      return $.get(Game.configMap.apiUrl + url).then(function (r) {
+      return $.get(url).then(function (r) {
         return r;
       })["catch"](function (e) {
         console.log(e.message);
@@ -274,7 +231,7 @@ Game.Data = function () {
     if (stateMap.enviroment === 'development') {
       return getMockData(url);
     } else if (stateMap.enviroment === 'production') {
-      return fetch(Game.configMap.apiUrl + url, {
+      return fetch(url, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -282,25 +239,23 @@ Game.Data = function () {
         body: JSON.stringify(data)
       }).then(function (response) {
         if (!response.ok) {
-          if (response.status === 401) {
+          if (response.status === 400 || response.status === 401) {
             return response.text().then(function (message) {
-              feedbackWidget.show("\"".concat(message), 'danger');
+              feedbackWidget.show("".concat(message), 'danger');
             });
           } else {
             throw new Error('Request failed with status: ' + response.status);
           }
         }
-        // Handle successful response
         return response.json();
-      }).then(function (data) {
-        // Process the data from a successful response
       })["catch"](function (error) {
         console.log(error.message); // Display the error message
       });
     }
   };
 
-  var privateInit = function privateInit(environment) {
+  var _init = function _init(url, environment) {
+    configMap.url = url;
     if (environment != 'production' && environment != 'development') {
       throw new Error('Environment parameter is invalid');
     }
@@ -309,12 +264,12 @@ Game.Data = function () {
   return {
     get: get,
     put: put,
-    init: privateInit
+    init: _init
   };
 }();
 Game.Model = function () {
   var configMap = {};
-  var privateInit = function privateInit() {};
+  var _Init = function _Init() {};
   var _getWeather = function _getWeather(url) {
     return Game.Data.get(url).then(function (data) {
       if (data['main']['temp']) {
@@ -326,17 +281,260 @@ Game.Model = function () {
       console.log(error.message);
     });
   };
-  var _getGameState = function _getGameState(token) {
-    var url = "/Game/".concat(token);
-    return Game.Data.get(url).then(function (data) {
-      return data;
-    })["catch"](function (error) {
-      console.log(error.message);
+  return {
+    init: _Init,
+    getWeather: _getWeather
+  };
+}();
+Game.Reversi = function () {
+  var configMap = {};
+  var _init = function _init(gameboard) {
+    var boardData = JSON.parse(gameboard);
+    _initBoard(boardData);
+  };
+  var cellClickListener = function cellClickListener() {
+    var gridItem = event.target.closest('.empty-piece');
+    if (!gridItem) return; // Click occurred outside a grid item
+
+    var x = parseInt(gridItem.parentElement.dataset.col);
+    var y = parseInt(gridItem.parentElement.dataset.row);
+    var color = Game.configMap.Color;
+    _showFiche(x, y, color === 'black' ? 'black' : 'white');
+    if (color == 'black' || color == 'white') {
+      Game.Reversi.doMove(x, y).then(function () {
+        //Succes -> check game state
+        return Game.getCurrentGameState();
+      })["catch"](function (error) {
+        console.log(error.message);
+      });
+    }
+  };
+  var _doMove = function _doMove(x, y) {
+    var move = {
+      X: x,
+      Y: y,
+      GameToken: Game.configMap.Token,
+      PlayerToken: Game.configMap.playerToken
+    };
+    return Game.API.makeMove(move);
+  };
+  function _showFiche(x, y, color) {
+    var cellSelector = ".grid-item[data-row=\"".concat(y, "\"][data-col=\"").concat(x, "\"]");
+    var cellElement = document.querySelector(cellSelector);
+    var fiche = document.createElement("div");
+    fiche.classList.add("fiche");
+    fiche.classList.add("".concat(color, "-piece"));
+    cellElement.innerHTML = "";
+    cellElement.append(fiche);
+  }
+  function _initBoard(boardData) {
+    var boardContainer = document.getElementById('board-container');
+    boardContainer.innerHTML = Game.Template.parseTemplate("gameboard.body", {
+      board: boardData
+    });
+  }
+  function _updateBoard(boardData) {
+    var boardContainer = document.getElementById('board-container');
+    var gridItems = boardContainer.querySelectorAll('.grid-item');
+    var _iterator = _createForOfIteratorHelper(gridItems),
+      _step;
+    try {
+      for (_iterator.s(); !(_step = _iterator.n()).done;) {
+        var gridItem = _step.value;
+        var x = parseInt(gridItem.dataset.col);
+        var y = parseInt(gridItem.dataset.row);
+        var color = boardData[y][x];
+
+        // Get the current fiche element from the gridItem
+        var currentFiche = gridItem.querySelector(".fiche");
+        var currentColorValue = void 0;
+        if (currentFiche) {
+          // If there's a fiche, determine its current color value
+          if (currentFiche.classList.contains("white-piece")) {
+            currentColorValue = 1;
+          } else if (currentFiche.classList.contains("black-piece")) {
+            currentColorValue = 2;
+          } else {
+            currentColorValue = 0;
+          }
+        } else {
+          currentColorValue = 0;
+        }
+        if (currentColorValue !== color) {
+          // Colors don't match, replace the fiche
+          gridItem.innerHTML = ""; // Clear any existing fiche
+          var fiche = document.createElement("div");
+          if (color === 1) {
+            fiche.classList.add("fiche", "white-piece");
+          } else if (color === 2) {
+            fiche.classList.add("fiche", "black-piece");
+          } else {
+            fiche.classList.add("fiche", "empty-piece");
+            fiche.addEventListener("click", cellClickListener);
+          }
+          gridItem.append(fiche);
+        }
+      }
+    } catch (err) {
+      _iterator.e(err);
+    } finally {
+      _iterator.f();
+    }
+  }
+  return {
+    init: _init,
+    showFiche: _showFiche,
+    initBoard: _initBoard,
+    updateBoard: _updateBoard,
+    doMove: _doMove,
+    cellClickListener: cellClickListener
+  };
+}();
+Game.Stats = function () {
+  var configMap = {};
+  var occupiedChart, capturedChart;
+  function _init() {
+    _initCharts();
+  }
+  function _initCharts() {
+    occupiedChart = new Chart(document.getElementById('occupiedChart').getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: [],
+        // Dynamically set, so no need to set this.
+        datasets: [{
+          label: 'White',
+          data: [],
+          borderColor: 'gray',
+          backgroundColor: 'white'
+        }, {
+          label: 'Black',
+          data: [],
+          borderColor: 'black',
+          backgroundColor: 'black'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100
+          }
+        }
+      }
+    });
+    capturedChart = new Chart(document.getElementById('capturedChart').getContext('2d'), {
+      type: 'bar',
+      // Bar chart
+      data: {
+        labels: ['White', 'Black'],
+        // Labels for the players
+        datasets: [{
+          label: 'Captured Opponent Pieces',
+          data: [0, 0],
+          backgroundColor: ['gray', 'black']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        // Set to false to control the aspect ratio
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  }
+  function addOccupiedChartData(board) {
+    if (!occupiedChart) {
+      console.error("Something's wrong with occupiedChart!");
+      return;
+    }
+    var whites = 0;
+    var blacks = 0;
+    var _iterator2 = _createForOfIteratorHelper(board),
+      _step2;
+    try {
+      for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+        var row = _step2.value;
+        var _iterator3 = _createForOfIteratorHelper(row),
+          _step3;
+        try {
+          for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+            var value = _step3.value;
+            if (value == 1) {
+              whites++;
+            } else if (value == 2) {
+              blacks++;
+            }
+          }
+        } catch (err) {
+          _iterator3.e(err);
+        } finally {
+          _iterator3.f();
+        }
+      }
+    } catch (err) {
+      _iterator2.e(err);
+    } finally {
+      _iterator2.f();
+    }
+    var whitePercentage = whites / 64 * 100;
+    var blackPercentage = blacks / 64 * 100;
+
+    // Adds date
+    var currentDate = new Date();
+    var label = currentDate.toLocaleTimeString(); // You can use a timestamp as the label
+    occupiedChart.data.labels.push(label);
+
+    // Data points
+    occupiedChart.data.datasets[0].data.push(whitePercentage);
+    occupiedChart.data.datasets[1].data.push(blackPercentage);
+
+    // Update the chart
+    occupiedChart.update();
+  }
+  return {
+    init: _init,
+    addOccupiedChartData: addOccupiedChartData
+  };
+}();
+Game.Template = function () {
+  var _getTemplate = function _getTemplate(templateName) {
+    var templates = spa_templates.templates;
+    var _iterator4 = _createForOfIteratorHelper(templateName.split('.')),
+      _step4;
+    try {
+      for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+        var tl = _step4.value;
+        templates = templates[tl];
+      }
+    } catch (err) {
+      _iterator4.e(err);
+    } finally {
+      _iterator4.f();
+    }
+    return templates;
+  };
+  var _parseTemplate = function _parseTemplate(templateName, data) {
+    var template = _getTemplate(templateName);
+    return template(data);
+  };
+  var _init = function _init() {
+    Handlebars.registerHelper('isWhitePiece', function (player) {
+      return player === 1;
+    });
+    Handlebars.registerHelper('isBlackPiece', function (player) {
+      return player === 2;
     });
   };
   return {
-    init: privateInit,
-    getWeather: _getWeather,
-    getGameState: _getGameState
+    parseTemplate: _parseTemplate,
+    init: _init,
+    getTemplate: _getTemplate
   };
 }();
