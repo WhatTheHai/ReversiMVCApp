@@ -64,9 +64,10 @@ namespace ReversiMvcApp.Services
         }
 
         public async Task<List<Game>> GetPlayerGames(string playerToken) {
+            Console.WriteLine(playerToken);
             var response =  await httpClient.GetAsync(playerToken + "/anygames");
+            Console.WriteLine(response);
             response.EnsureSuccessStatusCode();
-
             var content = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<List<Game>>(content);
         }
