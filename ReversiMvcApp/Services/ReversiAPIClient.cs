@@ -19,8 +19,12 @@ namespace ReversiMvcApp.Services
         //= "http://localhost:5002/api/game";
 
         public ReversiAPIClient(IConfiguration configuration) {
+            var handler = new HttpClientHandler() 
+            { 
+                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator,
+            };
             this.configuration = configuration;
-            httpClient = new HttpClient();
+            httpClient = new HttpClient(handler);
             httpClient.BaseAddress = new Uri(this.configuration["apiHost"] + "/game/");
             httpClient.DefaultRequestHeaders.Accept.Clear();
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
