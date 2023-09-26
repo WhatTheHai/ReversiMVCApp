@@ -74,7 +74,7 @@ namespace ReversiMvcApp
                 await next();
             });
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseRouting();
             app.UseCors("Reversi");
