@@ -28,7 +28,7 @@ var Game = function () {
     configMap.playerToken = playerToken;
     configMap.Token = Token;
     configMap.Color = getColor();
-    Game.Data.init(configMap.apiUrl, "production");
+    Game.Data.init(configMap.apiUrl, 'production');
     Game.Model.init();
     Game.Template.init();
     Game.API.init();
@@ -43,6 +43,7 @@ var Game = function () {
     }
   };
   var _getCurrentGameState = function _getCurrentGameState() {
+    console.log(stateMap.gameState.isTurn);
     Game.API.getGameState(configMap.Token).then(function (data) {
       if (!initializeOnce) {
         stateMap.gameState = data;
@@ -51,13 +52,17 @@ var Game = function () {
         initializeOnce = true;
       } else {
         if (stateMap.gameState.board != data.board) {
-          console.log("not same");
+          // Board has been updated
+          // As a hindsight, I could've checked for this and then update the board, but due to time constraint, I cannot change this.
           Game.Stats.addOccupiedChartData(data.board);
+          //data.board = newer board, gamestate is older board
+          Game.Stats.addCapturedChartData(stateMap.gameState.board, data.board);
         }
         stateMap.gameState = data;
         Game.Reversi.updateBoard(JSON.parse(stateMap.gameState.board));
+        Game.Reversi.turnStatus(stateMap.gameState.isTurn);
       }
-      if (data.finished == "True") {
+      if (data.finished == 'True') {
         clearInterval(pollRate);
         var currentUrl = window.location;
         var redirectUrl = "".concat(currentUrl.protocol, "//").concat(currentUrl.host, "/Game/Result/").concat(configMap.Token);
@@ -93,27 +98,16 @@ var FeedbackWidget = /*#__PURE__*/function () {
     value: function show(message, type) {
       var _this = this;
       var elem = document.getElementById(this._elementId);
-      var typeEmoji = "✔️";
-      var fact = "Placeholder";
-      elem.style.display = "block";
-      // let textElement = elem.querySelector('.feedback-text--text');
-      // textElement.textContent = message;
-      // if (type == "success") {
-      //   $(elem).attr("class","feedback-container--success");
-      //   $(".feedback-text--emoji").text("✔️");
-      // } else {
-      //   $(elem).attr("class", "feedback-container--danger");
-      //   $(".feedback-text--emoji").text("❌");
-      // }
-      // $(elem).addClass("fade-in");
-
-      if (type != "success") {
-        type = "danger";
-        typeEmoji = "❌";
+      var typeEmoji = '✔️';
+      var fact = 'Placeholder';
+      elem.style.display = 'block';
+      if (type != 'success') {
+        type = 'danger';
+        typeEmoji = '❌';
       }
       Game.API.getDogFact().then(function (data) {
         var fact = data.data[0].attributes.body;
-        elem.outerHTML = Game.Template.parseTemplate("feedbackWidget.body", {
+        elem.outerHTML = Game.Template.parseTemplate('feedbackWidget.body', {
           status: type,
           emoji: typeEmoji,
           text: message,
@@ -129,37 +123,37 @@ var FeedbackWidget = /*#__PURE__*/function () {
     key: "hide",
     value: function hide() {
       var elem = document.getElementById(this._elementId);
-      elem.classList.add("fade-out");
+      elem.classList.add('fade-out');
       setTimeout(function () {
-        elem.style.display = "none";
-        elem.classList.remove("fade-out");
-        elem.classList.remove("fade-in");
+        elem.style.display = 'none';
+        elem.classList.remove('fade-out');
+        elem.classList.remove('fade-in');
       }, 749);
     }
   }, {
     key: "log",
     value: function log(message) {
-      var allMessages = JSON.parse(localStorage.getItem("feedback_widget"));
+      var allMessages = JSON.parse(localStorage.getItem('feedback_widget'));
       if (allMessages == null) {
         allMessages = [];
       } else if (allMessages.length >= 10) {
         allMessages.splice(0, 1);
       }
       allMessages.push(message);
-      localStorage.setItem("feedback_widget", JSON.stringify(allMessages));
+      localStorage.setItem('feedback_widget', JSON.stringify(allMessages));
     }
   }, {
     key: "removeLog",
     value: function removeLog() {
-      localStorage.removeItem("feedback_widget");
+      localStorage.removeItem('feedback_widget');
     }
   }, {
     key: "history",
     value: function history() {
-      var allMessages = JSON.parse(localStorage.getItem("feedback_widget"));
-      var result = "";
+      var allMessages = JSON.parse(localStorage.getItem('feedback_widget'));
+      var result = '';
       allMessages.forEach(function (message) {
-        result += "type ".concat(message["type"], " - ").concat(message["message"], " \n");
+        result += "type ".concat(message['type'], " - ").concat(message['message'], " \n");
       });
       console.log(result);
     }
@@ -202,7 +196,7 @@ Game.Data = function () {
     enviroment: 'production'
   };
   var configMap = {
-    url: "",
+    url: '',
     mock: [{
       url: '/api/Game/Turn',
       data: 0
@@ -321,16 +315,23 @@ Game.Reversi = function () {
   function _showFiche(x, y, color) {
     var cellSelector = ".grid-item[data-row=\"".concat(y, "\"][data-col=\"").concat(x, "\"]");
     var cellElement = document.querySelector(cellSelector);
-    var fiche = document.createElement("div");
-    fiche.classList.add("fiche");
+    var fiche = document.createElement('div');
+    fiche.classList.add('fiche');
     fiche.classList.add("".concat(color, "-piece"));
-    cellElement.innerHTML = "";
+    cellElement.innerHTML = '';
     cellElement.append(fiche);
   }
   function _initBoard(boardData) {
     var boardContainer = document.getElementById('board-container');
-    boardContainer.innerHTML = Game.Template.parseTemplate("gameboard.body", {
+    boardContainer.innerHTML = Game.Template.parseTemplate('gameboard.body', {
       board: boardData
+    });
+  }
+  function turnStatus(colour) {
+    var turnContainer = document.getElementById('turn-container');
+    var message = 'It is currently ' + String(colour).toLowerCase() + "'s turn.";
+    turnContainer.innerHTML = Game.Template.parseTemplate('turn.turn-text', {
+      text: message
     });
   }
   function _updateBoard(boardData) {
@@ -346,13 +347,13 @@ Game.Reversi = function () {
         var color = boardData[y][x];
 
         // Get the current fiche element from the gridItem
-        var currentFiche = gridItem.querySelector(".fiche");
+        var currentFiche = gridItem.querySelector('.fiche');
         var currentColorValue = void 0;
         if (currentFiche) {
           // If there's a fiche, determine its current color value
-          if (currentFiche.classList.contains("white-piece")) {
+          if (currentFiche.classList.contains('white-piece')) {
             currentColorValue = 1;
-          } else if (currentFiche.classList.contains("black-piece")) {
+          } else if (currentFiche.classList.contains('black-piece')) {
             currentColorValue = 2;
           } else {
             currentColorValue = 0;
@@ -362,15 +363,15 @@ Game.Reversi = function () {
         }
         if (currentColorValue !== color) {
           // Colors don't match, replace the fiche
-          gridItem.innerHTML = ""; // Clear any existing fiche
-          var fiche = document.createElement("div");
+          gridItem.innerHTML = ''; // Clear any existing fiche
+          var fiche = document.createElement('div');
           if (color === 1) {
-            fiche.classList.add("fiche", "white-piece");
+            fiche.classList.add('fiche', 'white-piece');
           } else if (color === 2) {
-            fiche.classList.add("fiche", "black-piece");
+            fiche.classList.add('fiche', 'black-piece');
           } else {
-            fiche.classList.add("fiche", "empty-piece");
-            fiche.addEventListener("click", cellClickListener);
+            fiche.classList.add('fiche', 'empty-piece');
+            fiche.addEventListener('click', cellClickListener);
           }
           gridItem.append(fiche);
         }
@@ -387,6 +388,7 @@ Game.Reversi = function () {
     initBoard: _initBoard,
     updateBoard: _updateBoard,
     doMove: _doMove,
+    turnStatus: turnStatus,
     cellClickListener: cellClickListener
   };
 }();
@@ -491,16 +493,47 @@ Game.Stats = function () {
     var label = currentDate.toLocaleTimeString(); // You can use a timestamp as the label
     occupiedChart.data.labels.push(label);
 
-    // Data points
+    // Push data points
     occupiedChart.data.datasets[0].data.push(whitePercentage);
     occupiedChart.data.datasets[1].data.push(blackPercentage);
 
     // Update the chart
     occupiedChart.update();
   }
+  function addCapturedChartData(oldBoard, newBoard) {
+    if (!capturedChart) {
+      console.error("Something's wrong with capturedChart!");
+      return;
+    }
+    var oldBoardParsed = JSON.parse(oldBoard);
+    var newBoardParsed = JSON.parse(newBoard);
+    var whiteCaptured = 0;
+    var blackCaptured = 0;
+    for (var i = 0; i < oldBoardParsed.length; i++) {
+      for (var j = 0; j < oldBoardParsed[i].length; j++) {
+        if (oldBoardParsed[i][j] !== 0 && oldBoardParsed[i][j] !== newBoardParsed[i][j]) {
+          if (oldBoardParsed[i][j] === 1) {
+            // White piece captured
+            blackCaptured++;
+          } else if (oldBoardParsed[i][j] === 2) {
+            // Black piece captured
+            whiteCaptured++;
+          }
+        }
+      }
+    }
+
+    // Add data, not replace
+    capturedChart.data.datasets[0].data[0] += whiteCaptured;
+    capturedChart.data.datasets[0].data[1] += blackCaptured;
+
+    // Update the chart
+    capturedChart.update();
+  }
   return {
     init: _init,
-    addOccupiedChartData: addOccupiedChartData
+    addOccupiedChartData: addOccupiedChartData,
+    addCapturedChartData: addCapturedChartData
   };
 }();
 Game.Template = function () {

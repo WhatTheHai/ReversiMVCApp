@@ -4,5 +4,6 @@
     {
         public string Token { get; set; }
         public string PlayerToken { get; set; }
+        public Colour Colour { get; set; }
     }
 }

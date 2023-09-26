@@ -15,11 +15,18 @@
 <h1>Play</h1>
 
 <div>
-    <h4>Game</h4>
+    <h3>Time for some Reversi!</h3>
+    @if (Model.Colour == Colour.White) {
+        <h4>You are playing as white!</h4>
+    }
+    else
+    {
+        <h4>You are playing as black!</h4>
+    }
+    <div id="turn-container"></div>
     <hr />
 </div>
-<div id="feedback-container" class="fade-in" style="display: none">
-</div>
+<div id="feedback-container"></div>
 <div id="board-container"></div>
 <div>
     <a asp-controller="Home" asp-action="Index">Back to List</a>

@@ -40,10 +40,11 @@ namespace ReversiMvcApp.Controllers
             }
 
             var game = await reversiAPIClient.GetGame(token);
-
+            var playerToken = Utilities.GetCurrentUserID(User);
             var gamePlayerToken = new GamePlayerToken() {
                 Token = game.Token,
-                PlayerToken = Utilities.GetCurrentUserID(User)
+                PlayerToken = playerToken,
+                Colour = (playerToken == game.Player1Token) ? Colour.White : Colour.Black,
             };
 
             return View(gamePlayerToken);
