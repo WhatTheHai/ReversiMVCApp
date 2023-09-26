@@ -25,7 +25,7 @@ namespace ReversiMvcApp.Services
             };
             this.configuration = configuration;
             httpClient = new HttpClient(handler);
-            httpClient.BaseAddress = new Uri(this.configuration["ApiHost"] + "/game/");
+            httpClient.BaseAddress = new Uri("http://localhost:5002/api" + "/game/");
             httpClient.DefaultRequestHeaders.Accept.Clear();
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             Console.WriteLine(httpClient);
