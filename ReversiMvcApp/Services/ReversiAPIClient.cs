@@ -68,6 +68,7 @@ namespace ReversiMvcApp.Services
             Console.WriteLine(playerToken);
             var response =  await httpClient.GetAsync(playerToken + "/anygames");
             Console.WriteLine(response);
+            Console.WriteLine(response.RequestMessage.RequestUri + " HIERRRRR");
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<List<Game>>(content);
