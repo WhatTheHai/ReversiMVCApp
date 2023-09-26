@@ -28,6 +28,7 @@ namespace ReversiMvcApp.Services
             httpClient.BaseAddress = new Uri(this.configuration["apiHost"] + "/game/");
             httpClient.DefaultRequestHeaders.Accept.Clear();
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            Console.WriteLine(httpClient);
         }
 
         public async Task<List<Game>> GetGamesAwaitingPlayers() {
