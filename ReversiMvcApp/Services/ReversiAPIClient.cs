@@ -14,7 +14,7 @@ namespace ReversiMvcApp.Services
 
     public class ReversiAPIClient {
         private readonly HttpClient httpClient;
-        private const string BaseUrl = "https://localhost:5001/api/game";
+        private const string BaseUrl = "http://localhost:5002/api/game";
 
         public ReversiAPIClient() {
             httpClient = new HttpClient();
