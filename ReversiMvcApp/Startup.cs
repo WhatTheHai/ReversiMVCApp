@@ -29,7 +29,7 @@ namespace ReversiMvcApp
             services.AddReCaptcha(Configuration.GetSection("ReCaptcha"));
             services.AddCors(o => o.AddPolicy("Reversi", builder =>
             {
-                builder.WithOrigins("https://localhost:44365")
+                builder.WithOrigins("https://localhost:5000")
                     .SetIsOriginAllowed((host) => true)
                     .AllowAnyMethod()
                     .AllowAnyHeader();
