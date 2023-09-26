@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using ReversiMvcApp.Models;
 
@@ -14,11 +15,13 @@ namespace ReversiMvcApp.Services
 
     public class ReversiAPIClient {
         private readonly HttpClient httpClient;
-        private const string BaseUrl = "http://localhost:5002/api/game";
+        private readonly IConfiguration configuration;
+        //= "http://localhost:5002/api/game";
 
-        public ReversiAPIClient() {
+        public ReversiAPIClient(IConfiguration configuration) {
+            this.configuration = configuration;
             httpClient = new HttpClient();
-            httpClient.BaseAddress = new Uri(BaseUrl);
+            httpClient.BaseAddress = new Uri(this.configuration["apiHost"] + "/game/");
             httpClient.DefaultRequestHeaders.Accept.Clear();
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
@@ -49,7 +52,7 @@ namespace ReversiMvcApp.Services
         }
 
         public async Task<Game> GetGame(string token) {
-            var response =  await httpClient.GetAsync(BaseUrl + "/" + token);
+            var response =  await httpClient.GetAsync( token);
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
@@ -57,7 +60,7 @@ namespace ReversiMvcApp.Services
         }
 
         public async Task<List<Game>> GetPlayerGames(string playerToken) {
-            var response =  await httpClient.GetAsync(BaseUrl + "/" + playerToken + "/anygames");
+            var response =  await httpClient.GetAsync(playerToken + "/anygames");
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
@@ -65,7 +68,7 @@ namespace ReversiMvcApp.Services
         }
 
         public async Task<ApiGameStatus> GetGameStatus(string token) {
-            var response =  await httpClient.GetAsync(BaseUrl + "/" + token + "/status");
+            var response =  await httpClient.GetAsync( token + "/status");
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
@@ -83,7 +86,7 @@ namespace ReversiMvcApp.Services
             //DeleteASync doesn't have support to add json frombody, so I had to create a custom request
             var request = new HttpRequestMessage() {
                 Method = HttpMethod.Delete,
-                RequestUri = new Uri(BaseUrl + "/" + playerToken),
+                RequestUri = new Uri(playerToken),
                 Content = content
             };
             var response = await httpClient.SendAsync(request);
@@ -105,7 +108,7 @@ namespace ReversiMvcApp.Services
             var json = JsonConvert.SerializeObject(playerToken);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await httpClient.PutAsync(BaseUrl + $"/result/{token}", content);
+            var response = await httpClient.PutAsync($"result/{token}", content);
             if (response.IsSuccessStatusCode)
             {
                 return true;
@@ -126,7 +129,7 @@ namespace ReversiMvcApp.Services
             var json = JsonConvert.SerializeObject(joinGame);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await httpClient.PutAsync(BaseUrl + $"/joingame/", content);
+            var response = await httpClient.PutAsync($"joingame/", content);
             if (response.IsSuccessStatusCode)
             {
                 return true;

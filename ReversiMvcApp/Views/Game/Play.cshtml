@@ -1,4 +1,6 @@
-﻿@model ReversiMvcApp.Models.GamePlayerToken
+﻿@using Microsoft.Extensions.Configuration
+@model ReversiMvcApp.Models.GamePlayerToken
+@inject IConfiguration _config
 
 @section headScripts {
     <link rel="stylesheet" href="~/css/style.min.css"/>
@@ -10,6 +12,7 @@
 
 @{
     ViewData["Title"] = "Play";
+    
 }
 
 <h1>Play</h1>
@@ -46,6 +49,6 @@
 <script>
     $(document).ready(function () {
         feedbackWidget = new FeedbackWidget("feedback-container");
-        Game.init("http://localhost:5002/api", "@Model.PlayerToken", "@Model.Token");
+        Game.init("@_config["ApiHost"]", "@Model.PlayerToken", "@Model.Token");
     });
 </script>
