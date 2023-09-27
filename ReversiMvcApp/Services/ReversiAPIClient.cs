@@ -19,16 +19,11 @@ namespace ReversiMvcApp.Services
         //= "http://localhost:5002/api/game";
 
         public ReversiAPIClient(IConfiguration configuration) {
-            var handler = new HttpClientHandler() 
-            { 
-                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator,
-            };
             this.configuration = configuration;
-            httpClient = new HttpClient(handler);
+            httpClient = new HttpClient();
             httpClient.BaseAddress = new Uri("http://localhost:5002/api" + "/game/");
             httpClient.DefaultRequestHeaders.Accept.Clear();
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            Console.WriteLine(httpClient);
         }
 
         public async Task<List<Game>> GetGamesAwaitingPlayers() {
@@ -65,10 +60,7 @@ namespace ReversiMvcApp.Services
         }
 
         public async Task<List<Game>> GetPlayerGames(string playerToken) {
-            Console.WriteLine(playerToken);
             var response =  await httpClient.GetAsync(playerToken + "/anygames");
-            Console.WriteLine(response);
-            Console.WriteLine(response.RequestMessage.RequestUri + " HIERRRRR");
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<List<Game>>(content);
@@ -93,7 +85,7 @@ namespace ReversiMvcApp.Services
             //DeleteASync doesn't have support to add json frombody, so I had to create a custom request
             var request = new HttpRequestMessage() {
                 Method = HttpMethod.Delete,
-                RequestUri = new Uri(playerToken),
+                RequestUri = new Uri(httpClient.BaseAddress, playerToken),
                 Content = content
             };
             var response = await httpClient.SendAsync(request);

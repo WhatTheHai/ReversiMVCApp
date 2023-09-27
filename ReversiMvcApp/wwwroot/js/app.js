@@ -43,7 +43,6 @@ var Game = function () {
     }
   };
   var _getCurrentGameState = function _getCurrentGameState() {
-    console.log(stateMap.gameState.isTurn);
     Game.API.getGameState(configMap.Token).then(function (data) {
       if (!initializeOnce) {
         stateMap.gameState = data;
